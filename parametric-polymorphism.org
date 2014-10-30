@@ -1,0 +1,308 @@
+#+TITLE:     Parametric Polymorphism in Haskell
+#+AUTHOR:    Ben Deane
+#+EMAIL:     bdeane@blizzard.com
+#+DATE:      30th October 2014
+#+DESCRIPTION: A short talk on Parametric Polymorphism for the Santa Monica Haskell User Group
+#+KEYWORDS: parametric polymorphism haskell
+#+LANGUAGE:  en
+#+OPTIONS:   H:1 num:t toc:nil \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+LINK_UP:
+#+LINK_HOME:
+#+XSLT:
+#+LaTeX_CLASS: beamer
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+LaTeX_HEADER: \usepackage{helvet}
+#+BEAMER_THEME: Madrid
+#+BEAMER_COLOR_THEME: wolverine
+#+STARTUP: beamer
+
+# To generate notes pages only:
+# +LaTeX_CLASS_OPTIONS: [handout]
+# +LaTeX_HEADER: \setbeameroption{show only notes}
+# +LaTeX_HEADER: \usepackage{pgfpages}
+# +LaTeX_HEADER: \pgfpagesuselayout{2 on 1}[letterpaper,portrait,border shrink=5mm]
+
+# For normal presentation output:
+#+LaTeX_CLASS_OPTIONS: [bigger]
+
+
+* Title notes                                                        :B_note:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+
+* Disclaimer
+#+BEGIN_LaTeX
+\begin{center}
+I suspect there are several people in the audience who know more about this than I do!
+\linebreak
+\linebreak
+\linebreak
+This is what I think I know. (Broadly on the topic of Parametric Polymorphism.)
+\end{center}
+#+END_LaTeX
+
+* Two kinds of polymorphism
+** Parametric                                                 :B_block:BMCOL:
+:PROPERTIES:
+:BEAMER_col: 0.4
+:BEAMER_env: block
+:END:
+#+attr_beamer: :overlay <1->
+- Type variables \\ (a, b, etc)
+#+attr_beamer: :overlay <2->
+- Universal
+#+attr_beamer: :overlay <3->
+- Compile-time
+#+attr_beamer: :overlay <4->
+- C++ templates, \\ Java generics
+
+** Ad-hoc                                                     :B_block:BMCOL:
+:PROPERTIES:
+:BEAMER_col: 0.4
+:BEAMER_env: block
+:END:
+#+attr_beamer: :overlay <1->
+- Type classes \\ (Eq, Num, etc)
+#+attr_beamer: :overlay <2->
+- Existential?
+#+attr_beamer: :overlay <3->
+- Runtime (also)
+#+attr_beamer: :overlay <4->
+- Classical \\ ("normal" OO)
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+(none)
+
+* Polymorphic Datatypes
+** For example...                                     :B_exampleblock:BMCOL:
+:PROPERTIES:
+:BEAMER_col: 0.8
+:BEAMER_env: exampleblock
+:END:
+#+name: datatypes
+#+begin_src haskell
+data Maybe a = Nothing | Just a
+
+data List a = Nil | Cons a (List a)
+
+data Either a b = Left a | Right b
+#+end_src
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+(none)
+
+* Polymorphic Functions
+** For example...                                     :B_exampleblock:BMCOL:
+:PROPERTIES:
+:BEAMER_col: 0.8
+:BEAMER_env: exampleblock
+:END:
+#+name: functions
+#+begin_src haskell
+reverse :: [a] -> [a]
+
+fst :: (a,b) -> a
+
+id :: a -> a
+#+end_src
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+(none)
+
+* Universally quantified
+- Work over *all* types
+- Assume nothing behaviour-wise
+- Parametricity
+  - Intuitively, all instances act the same way
+  - Theorems for free
+  - eg. \texttt{reverse . map f} \Leftrightarrow \texttt{map f . reverse}
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+(none)
+
+* Totality
+** Partial functions                                   :B_exampleblock:BMCOL:
+:PROPERTIES:
+:BEAMER_col: 0.8
+:BEAMER_env: exampleblock
+:END:
+#+name: partial_functions
+#+begin_src haskell
+head :: [a] -> a
+
+tail :: [a] -> [a]
+#+end_src
+
+** Block                                                   :B_ignoreheading:
+:PROPERTIES:
+:BEAMER_env: ignoreheading
+:END:
+#+BEGIN_LaTeX
+\begin{center}
+What happens when \texttt{a} is \texttt{[]}?
+\linebreak
+\linebreak
+These are not \emph{total functions}.
+\linebreak
+They are undefined for some inputs.
+\end{center}
+#+END_LaTeX
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+(none)
+
+* Type Inference and Unification
+** Block                                                   :B_ignoreheading:
+:PROPERTIES:
+:BEAMER_env: ignoreheading
+:END:
+#+BEGIN_LaTeX
+\begin{center}
+\emph{Unification}: the process of solving a system of equations in type variables.
+\linebreak
+\linebreak
+and
+\linebreak
+\linebreak
+\emph{Inference}: Why you thought you meant \texttt{Int -> Int} but the compiler knows you really meant \texttt{Num a => a -> a}.
+\end{center}
+#+END_LaTeX
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+Unification is the process by which the compiler infers types. It introduces
+type variables as necessary.
+
+* An Odd Thought
+#+attr_beamer: :overlay <+->
+- What can we say about \texttt{a -> a}?
+  - We know it has to be \texttt{id}.
+- What can we say about \texttt{Int -> Int}?
+  - Almost nothing!
+- Even though we know more about \texttt{Int} than about \texttt{a}!
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+(none)
+
+* Types as Sets
+- The set of representable values
+- How many values *inhabit* the type
+- Characterised by cardinality of the set
+
+** For example                                              :B_exampleblock:
+:PROPERTIES:
+:BEAMER_env: exampleblock
+:END:
+- 0 :: ? (in some languages, \texttt{void})
+- 1 :: \texttt{a -> a}
+- 2 :: \texttt{Bool}
+- 2^64 :: \texttt{Int}
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+There are no uninhabited types in Haskell because undefined (or indeed error
+"Foo") is a member of every type.
+
+* Sum Types and Product Types
+- Sum types represent *alternation*
+
+** For example                                              :B_exampleblock:
+:PROPERTIES:
+:BEAMER_env: exampleblock
+:END:
+- a + b :: \Leftrightarrow \texttt{Either a b}
+- 1 + a :: \Leftrightarrow \texttt{Maybe a}
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+Abuse of notation note: on the left here, a and b represent the cardinality of
+the set of values representable by types a and b
+
+* Sum Types and Product Types
+- Product types represent *composition*
+
+** For example                                              :B_exampleblock:
+:PROPERTIES:
+:BEAMER_env: exampleblock
+:END:
+- a * b :: \Leftrightarrow \texttt{(a,b)}
+- a * 2 :: \Leftrightarrow \texttt{(a,Bool)}
+
+* What about function types?
+- They equate to a power function
+  - b^a \Leftrightarrow \texttt{a -> b}
+- (For concrete types, not type variables)
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+(none)
+
+* From CIS194 2014
+** Week 4, Exercise 5                                  :B_exampleblock:BMCOL:
+:PROPERTIES:
+:BEAMER_col: 0.8
+:BEAMER_env: exampleblock
+:END:
+#+name: datatypes
+#+begin_src haskell
+-- How many distinct functions inhabit this type?
+ex5 :: Bool -> Bool
+-- Answer: 4
+ex5   = const True
+ex5_2 = const False
+ex5_3 = id
+ex5_4 = complement
+-- Using type algebra:
+-- Bool -> Bool
+-- => 2 -> 2
+-- => 2^2 = 4
+#+end_src
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+(none)
+
+* Further Reading/Watching
+- [[http://ttic.uchicago.edu/~dreyer/course/papers/wadler.pdf][\color{blue}Theorems for Free]] - Philip Wadler
+- [[http://chris-taylor.github.io/blog/2013/02/10/the-algebra-of-algebraic-data-types/][\color{blue}The Algebra of Algebraic Data Types]] - Chris Taylor
+  - [[https://www.youtube.com/watch?v=YScIPA8RbVE][\color{blue}London HUG video]]
+- [[https://www.youtube.com/watch?v=6COvD8oynmI][\color{blue}Adventures with Types in Haskell]] - Simon Peyton-Jones
+
+** Notes                                                          :B_noteNH:
+:PROPERTIES:
+:BEAMER_env: noteNH
+:END:
+(none)
